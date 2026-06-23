@@ -163,6 +163,26 @@ Flag only sponsor issues that affect the exported episode:
 
 Each warning should link back to sponsor placement review or the metadata field where the creator can fix it. Episodes without sponsor elements should not block readiness on this item.
 
+## Metadata Warnings
+
+When episode fields or destination-specific publishing details would affect the exported episode, readiness should surface metadata issues as part of publishing review rather than as a separate CMS queue.
+
+| Warning type | Source spec | Relevant section |
+| --- | --- | --- |
+| metadata completeness and confidence | `docs/episode-metadata-publishing.md` | Metadata Fields, Review States, Readiness Checks |
+| destination-specific metadata fit | `docs/publish-destination-presets.md` | Relationship To Export Flow, Preset Effects, Review States |
+
+Flag only metadata issues that affect the exported episode:
+
+- title is missing or still reads like a placeholder
+- episode number is missing where the show format uses one
+- short or full description is missing for the chosen destination
+- guest name, title, or link still needs review
+- publish destination is not selected
+- metadata still matches the wrong destination preset
+
+Each warning should link back to the field or destination preset where the creator can fix it. Thumbnail quality issues, sponsor placement conflicts, and other visual approvals should stay with their own readiness surfaces rather than duplicate here.
+
 ## Timeline Checks
 
 For hour-plus episodes, the product should make review scalable:
