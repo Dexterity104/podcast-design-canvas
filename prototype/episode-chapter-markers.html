@@ -1,0 +1,791 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Episode Chapter Markers Prototype</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --ink: #16211f;
+        --muted: #5e6b67;
+        --line: #d9e0dd;
+        --panel: #f7faf8;
+        --accent: #136f63;
+        --warn: #a15c00;
+        --block: #a52828;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        color: var(--ink);
+        background: #ffffff;
+      }
+
+      main {
+        max-width: 1180px;
+        margin: 0 auto;
+        padding: 32px 20px 48px;
+      }
+
+      h1,
+      h2,
+      p {
+        margin-top: 0;
+      }
+
+      h1 {
+        font-size: 32px;
+        line-height: 1.1;
+        margin-bottom: 8px;
+      }
+
+      .lede {
+        color: var(--muted);
+        max-width: 760px;
+      }
+
+      .workspace {
+        display: grid;
+        grid-template-columns: minmax(0, 1.5fr) minmax(320px, 0.85fr);
+        gap: 24px;
+        margin-top: 28px;
+      }
+
+      .panel {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--panel);
+        padding: 18px;
+      }
+
+      .panel-head {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 10px;
+      }
+
+      .count {
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .chapters {
+        display: grid;
+        gap: 14px;
+      }
+
+      .chapter {
+        display: grid;
+        grid-template-columns: 150px minmax(0, 1fr);
+        gap: 14px;
+        padding: 14px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #ffffff;
+      }
+
+      .when {
+        display: grid;
+        gap: 8px;
+        align-content: start;
+      }
+
+      .time {
+        font-size: 15px;
+        font-weight: 800;
+      }
+
+      .source {
+        justify-self: start;
+        font-size: 12px;
+        color: var(--muted);
+        background: #eef2f0;
+        border-radius: 999px;
+        padding: 2px 9px;
+      }
+
+      .fields {
+        display: grid;
+        gap: 10px;
+        align-content: start;
+      }
+
+      .head {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 10px;
+      }
+
+      label {
+        display: grid;
+        gap: 6px;
+      }
+
+      .lbl {
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .grow {
+        flex: 1 1 auto;
+        min-width: 0;
+      }
+
+      input,
+      select {
+        width: 100%;
+        min-height: 40px;
+        border: 1px solid #bfcbc7;
+        border-radius: 6px;
+        background: #ffffff;
+        color: var(--ink);
+        font: inherit;
+        padding: 8px 10px;
+      }
+
+      .meta {
+        max-width: 280px;
+      }
+
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        min-height: 28px;
+        border-radius: 999px;
+        padding: 0 11px;
+        font-weight: 700;
+        font-size: 13px;
+        white-space: nowrap;
+      }
+
+      .badge.ready {
+        color: #075246;
+        background: #dff5ef;
+      }
+
+      .badge.review {
+        color: #7a4400;
+        background: #fff1d6;
+      }
+
+      .badge.blocked {
+        color: #8b1e1e;
+        background: #ffe0e0;
+      }
+
+      .row-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 2px;
+      }
+
+      .status {
+        display: inline-flex;
+        align-items: center;
+        min-height: 32px;
+        border-radius: 999px;
+        padding: 0 12px;
+        font-weight: 800;
+      }
+
+      .status.ready {
+        color: #075246;
+        background: #dff5ef;
+      }
+
+      .status.review {
+        color: #7a4400;
+        background: #fff1d6;
+      }
+
+      .status.blocked {
+        color: #8b1e1e;
+        background: #ffe0e0;
+      }
+
+      .issues {
+        display: grid;
+        gap: 10px;
+        margin-top: 14px;
+      }
+
+      .issue {
+        border-left: 4px solid var(--warn);
+        border-radius: 6px;
+        background: #ffffff;
+        padding: 12px;
+      }
+
+      .issue.blocker {
+        border-left-color: var(--block);
+      }
+
+      .issue.info {
+        border-left-color: var(--accent);
+      }
+
+      .issue strong {
+        display: block;
+        margin-bottom: 4px;
+      }
+
+      .issue span {
+        color: var(--muted);
+      }
+
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 18px;
+      }
+
+      button {
+        min-height: 40px;
+        border: 1px solid #0f5d53;
+        border-radius: 6px;
+        background: var(--accent);
+        color: #ffffff;
+        font: inherit;
+        font-weight: 700;
+        padding: 8px 12px;
+        cursor: pointer;
+      }
+
+      button.secondary {
+        background: #ffffff;
+        color: var(--accent);
+      }
+
+      button.mini {
+        min-height: 34px;
+        padding: 6px 10px;
+        font-size: 13px;
+        font-weight: 700;
+      }
+
+      .summary-note {
+        color: var(--muted);
+        font-size: 13px;
+        margin: 14px 0 0;
+      }
+
+      @media (max-width: 840px) {
+        .workspace {
+          grid-template-columns: 1fr;
+        }
+
+        .chapter {
+          grid-template-columns: 1fr;
+        }
+
+        .meta {
+          max-width: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Episode chapter markers</h1>
+      <p class="lede">Confirm where each chapter starts and give it a plain-language title, so a long episode gets a clear table of contents you can carry straight into publishing. You work with named moments &mdash; no timeline to hand-edit.</p>
+
+      <section class="workspace" aria-label="Episode chapter markers workspace">
+        <div class="panel">
+          <div class="panel-head">
+            <h2>Chapter outline</h2>
+            <span class="count" id="count"></span>
+          </div>
+          <div class="chapters" id="chapters"></div>
+          <div class="actions">
+            <button type="button" id="addChapter">Add a chapter</button>
+            <button type="button" class="secondary" id="reset">Reset sample</button>
+          </div>
+        </div>
+
+        <aside class="panel" aria-live="polite" aria-label="Chapter readiness summary">
+          <h2>Publish readiness</h2>
+          <div id="status" class="status ready">Chapter outline ready</div>
+          <div id="issues" class="issues"></div>
+          <p class="summary-note">Confirmed chapters flow into your episode metadata, the publish checklist, and export readiness. We only flag what would affect the finished contents.</p>
+        </aside>
+      </section>
+    </main>
+
+    <script>
+      (function () {
+        "use strict";
+
+        // Tuning for this prototype. A chapter shorter than SHORT seconds reads as
+        // "too short to keep"; two starts within OVERLAP seconds collide in the
+        // player contents. STEP is how far a nudge moves a start point. The creator
+        // only ever works with named moments and plain start positions — never with
+        // raw timeline mechanics.
+        var STEP = 30;
+        var SHORT = 45;
+        var OVERLAP = 10;
+        var DURATION = 3600;
+
+        // Where a suggested chapter came from (controlled labels, never user text).
+        var SOURCES = {
+          segment: "From segment",
+          topic: "Topic shift",
+          "title-moment": "Title moment",
+          guest: "Guest intro",
+          sponsor: "Sponsor read",
+          manual: "Added by you",
+        };
+
+        // What review surfaced about the chapter's opening (a detected attribute the
+        // creator can correct). Both options are meaningful — toggling always changes
+        // the underlying boundary.
+        var BOUNDARIES = {
+          clean: "Clean start",
+          mid: "Starts mid-sentence",
+        };
+
+        function clampStart(value) {
+          var n = Number(value);
+          if (!isFinite(n)) {
+            n = 0;
+          }
+          return Math.max(0, Math.min(DURATION, Math.round(n)));
+        }
+
+        function fmt(seconds) {
+          var s = clampStart(seconds);
+          var m = Math.floor(s / 60);
+          var ss = String(s % 60).padStart(2, "0");
+          if (m >= 60) {
+            var h = Math.floor(m / 60);
+            var mm = String(m % 60).padStart(2, "0");
+            return h + ":" + mm + ":" + ss;
+          }
+          return m + ":" + ss;
+        }
+
+        function fmtDuration(seconds) {
+          var s = Math.max(0, Math.round(seconds));
+          if (s < 60) {
+            return s + "s";
+          }
+          var m = Math.floor(s / 60);
+          var r = s % 60;
+          return r ? m + "m " + r + "s" : m + "m";
+        }
+
+        function displayLabel(chapter, index) {
+          var title = (chapter.title || "").trim();
+          return title || "Chapter " + (index + 1);
+        }
+
+        // Single source of truth: sort + clamp the list, then map each chapter to one
+        // of the spec's review states. Returns sorted copies so the caller can adopt
+        // them as the new model (defense in depth against stale/out-of-range values).
+        function evaluate(list) {
+          var sorted = list
+            .map(function (chapter) {
+              return {
+                id: chapter.id,
+                title: chapter.title,
+                start: clampStart(chapter.start),
+                source: SOURCES[chapter.source] ? chapter.source : "manual",
+                boundary: chapter.boundary === "mid" ? "mid" : "clean",
+              };
+            })
+            .sort(function (a, b) {
+              return a.start - b.start;
+            });
+
+          var results = sorted.map(function (chapter, index) {
+            var next = sorted[index + 1];
+            var end = next ? next.start : DURATION;
+            var gap = end - chapter.start;
+            var title = (chapter.title || "").trim();
+            var state;
+            if (!title) {
+              state = "needs a title";
+            } else if (next && gap <= OVERLAP) {
+              state = "overlaps the next chapter";
+            } else if (gap < SHORT) {
+              state = "too short to keep";
+            } else if (chapter.boundary === "mid") {
+              state = "starts mid-sentence";
+            } else {
+              state = "ready";
+            }
+            return { state: state, gap: gap, hasNext: !!next };
+          });
+
+          var blocked = results.some(function (result) {
+            return result.state === "needs a title" || result.state === "overlaps the next chapter";
+          });
+          var review = results.some(function (result) {
+            return result.state === "too short to keep" || result.state === "starts mid-sentence";
+          });
+          var overall = blocked ? "blocked" : review ? "review" : "ready";
+
+          return { sorted: sorted, results: results, overall: overall };
+        }
+
+        // Only the controls that would actually change this chapter are offered, so a
+        // creator never sees a button that does nothing. "earlier" is hidden at the
+        // very start, "later" when it would reach the next chapter, "merge" on the
+        // last chapter, and "remove" when only one chapter is left.
+        function actionsFor(index, list) {
+          var chapter = list[index];
+          var prev = list[index - 1];
+          var next = list[index + 1];
+          var actions = [];
+
+          var lowerBound = prev ? prev.start + 1 : 0;
+          if (chapter.start > lowerBound) {
+            actions.push({ action: "earlier", label: "Start " + STEP + "s earlier" });
+          }
+
+          var upperBound = next ? next.start - 1 : DURATION - 1;
+          if (chapter.start < upperBound) {
+            actions.push({ action: "later", label: "Start " + STEP + "s later" });
+          }
+
+          if (next) {
+            actions.push({ action: "merge", label: "Merge with next" });
+          }
+
+          if (list.length > 1) {
+            actions.push({ action: "remove", label: "Remove" });
+          }
+
+          return actions;
+        }
+
+        // Pure transform: apply a creator action and return the next (sorted) list.
+        // Guards mirror actionsFor so a stale call can never produce an invalid order.
+        function applyAction(action, index, list) {
+          var out = list.map(function (chapter) {
+            return {
+              id: chapter.id,
+              title: chapter.title,
+              start: clampStart(chapter.start),
+              source: chapter.source,
+              boundary: chapter.boundary,
+            };
+          });
+          var chapter = out[index];
+          if (!chapter) {
+            return out;
+          }
+          var prev = out[index - 1];
+          var next = out[index + 1];
+
+          if (action === "earlier") {
+            var lowerBound = prev ? prev.start + 1 : 0;
+            chapter.start = Math.max(lowerBound, chapter.start - STEP, 0);
+          } else if (action === "later") {
+            var upperBound = next ? next.start - 1 : DURATION - 1;
+            chapter.start = Math.min(upperBound, chapter.start + STEP);
+          } else if (action === "merge") {
+            if (next) {
+              out.splice(index + 1, 1);
+            }
+          } else if (action === "remove") {
+            if (out.length > 1) {
+              out.splice(index, 1);
+            }
+          }
+
+          return out.sort(function (a, b) {
+            return a.start - b.start;
+          });
+        }
+
+        function issueFor(result, chapter, index) {
+          var label = displayLabel(chapter, index);
+          if (result.state === "needs a title") {
+            return {
+              tone: "blocker",
+              title: "Chapter " + (index + 1) + " needs a title",
+              action: "Give this chapter a plain-language title so it reads in the player contents.",
+            };
+          }
+          if (result.state === "overlaps the next chapter") {
+            return {
+              tone: "blocker",
+              title: label + " overlaps the next chapter",
+              action: "Nudge its start earlier or merge it with the next chapter so the contents do not collide.",
+            };
+          }
+          if (result.state === "too short to keep") {
+            return {
+              tone: "review",
+              title: label + " is only " + fmtDuration(result.gap) + " long",
+              action: "Merge it into a nearby chapter or remove it so the outline stays scannable.",
+            };
+          }
+          if (result.state === "starts mid-sentence") {
+            return {
+              tone: "review",
+              title: label + " starts mid-sentence",
+              action: "Nudge its start to a clean line so the chapter does not open mid-thought.",
+            };
+          }
+          return null;
+        }
+
+        // ---- DOM rendering (browser only) ----------------------------------------
+
+        function el(tag, options, children) {
+          var node = document.createElement(tag);
+          options = options || {};
+          if (options.className) {
+            node.className = options.className;
+          }
+          if (options.text != null) {
+            // Every dynamic / user-influenced string goes through textContent, so a
+            // typed chapter title can never inject markup or break an attribute.
+            node.textContent = options.text;
+          }
+          if (options.value != null) {
+            node.value = options.value;
+          }
+          if (options.attrs) {
+            Object.keys(options.attrs).forEach(function (key) {
+              node.setAttribute(key, options.attrs[key]);
+            });
+          }
+          if (options.on) {
+            Object.keys(options.on).forEach(function (event) {
+              node.addEventListener(event, options.on[event]);
+            });
+          }
+          (children || []).forEach(function (child) {
+            if (child) {
+              node.appendChild(child);
+            }
+          });
+          return node;
+        }
+
+        function badgeClass(state) {
+          if (state === "too short to keep" || state === "starts mid-sentence") {
+            return "review";
+          }
+          if (state === "needs a title" || state === "overlaps the next chapter") {
+            return "blocked";
+          }
+          return "ready";
+        }
+
+        var chapters;
+        var sample;
+        var chaptersElement;
+        var statusElement;
+        var issuesElement;
+        var countElement;
+
+        function renderChapter(chapter, index, result) {
+          var when = el("div", { className: "when" }, [
+            el("span", { className: "time", text: "Starts at " + fmt(chapter.start) }),
+            el("span", { className: "source", text: SOURCES[chapter.source] || SOURCES.manual }),
+          ]);
+
+          var titleInput = el("input", {
+            value: chapter.title,
+            attrs: {
+              "data-field": "title",
+              "aria-label": "Chapter title",
+              placeholder: "Add a plain-language title",
+            },
+            on: {
+              input: function (event) {
+                chapter.title = event.target.value;
+                render();
+              },
+            },
+          });
+          var titleLabel = el("label", { className: "grow" }, [
+            el("span", { className: "lbl", text: "Chapter title" }),
+            titleInput,
+          ]);
+
+          var badge = el("span", {
+            className: "badge " + badgeClass(result.state),
+            text: result.state,
+          });
+
+          var head = el("div", { className: "head" }, [titleLabel, badge]);
+
+          var boundarySelect = el("select", {
+            attrs: { "data-field": "boundary", "aria-label": "Detected chapter boundary" },
+            on: {
+              change: function (event) {
+                chapter.boundary = event.target.value === "mid" ? "mid" : "clean";
+                render();
+              },
+            },
+          });
+          Object.keys(BOUNDARIES).forEach(function (value) {
+            var option = el("option", { text: BOUNDARIES[value], attrs: { value: value } });
+            if (value === (chapter.boundary === "mid" ? "mid" : "clean")) {
+              option.selected = true;
+            }
+            boundarySelect.appendChild(option);
+          });
+          var boundaryLabel = el("label", { className: "meta" }, [
+            el("span", { className: "lbl", text: "What review found" }),
+            boundarySelect,
+          ]);
+
+          var rowActions = el("div", { className: "row-actions" });
+          actionsFor(index, chapters).forEach(function (item) {
+            rowActions.appendChild(
+              el("button", {
+                className: item.action === "remove" ? "mini secondary" : "mini",
+                text: item.label,
+                attrs: { type: "button" },
+                on: {
+                  click: function () {
+                    chapters = applyAction(item.action, index, chapters);
+                    render();
+                  },
+                },
+              })
+            );
+          });
+
+          var fields = el("div", { className: "fields" }, [head, boundaryLabel, rowActions]);
+          return el("article", { className: "chapter", attrs: { "data-index": String(index) } }, [when, fields]);
+        }
+
+        function renderIssue(issue) {
+          return el("article", { className: "issue " + issue.tone }, [
+            el("strong", { text: issue.title }),
+            el("span", { text: issue.action }),
+          ]);
+        }
+
+        function render() {
+          var evaluation = evaluate(chapters);
+          chapters = evaluation.sorted;
+
+          chaptersElement.replaceChildren.apply(
+            chaptersElement,
+            chapters.map(function (chapter, index) {
+              return renderChapter(chapter, index, evaluation.results[index]);
+            })
+          );
+
+          countElement.textContent =
+            chapters.length + (chapters.length === 1 ? " chapter" : " chapters") + " · " + fmt(DURATION) + " episode";
+
+          statusElement.className = "status " + evaluation.overall;
+          statusElement.textContent =
+            evaluation.overall === "ready"
+              ? "Chapter outline ready"
+              : evaluation.overall === "blocked"
+                ? "Fix before publishing"
+                : "Review suggested";
+
+          var issues = [];
+          if (chapters.length > 12) {
+            issues.push(
+              renderIssue({
+                tone: "info",
+                title: chapters.length + " chapters is a lot for one episode",
+                action: "Merge short chapters so the outline stays scannable for listeners.",
+              })
+            );
+          }
+          chapters.forEach(function (chapter, index) {
+            var issue = issueFor(evaluation.results[index], chapter, index);
+            if (issue) {
+              issues.push(renderIssue(issue));
+            }
+          });
+          if (!issues.length) {
+            issues.push(el("p", { text: "Every chapter has a title and a clean start. Ready to publish." }));
+          }
+          issuesElement.replaceChildren.apply(issuesElement, issues);
+        }
+
+        function largestGapMidpoint(list) {
+          var bestIndex = 0;
+          var bestGap = -1;
+          list.forEach(function (chapter, index) {
+            var next = list[index + 1];
+            var end = next ? next.start : DURATION;
+            var gap = end - chapter.start;
+            if (gap > bestGap) {
+              bestGap = gap;
+              bestIndex = index;
+            }
+          });
+          return clampStart(list[bestIndex].start + bestGap / 2);
+        }
+
+        if (typeof document !== "undefined") {
+          sample = [
+            { id: "c1", title: "Cold open and welcome", start: 0, source: "segment", boundary: "clean" },
+            { id: "c2", title: "How the guest got started", start: 600, source: "guest", boundary: "clean" },
+            { id: "c3", title: "Finding the first customers", start: 1500, source: "topic", boundary: "clean" },
+            { id: "c4", title: "The pivotal decision", start: 2400, source: "segment", boundary: "mid" },
+            { id: "c5", title: "Lightning round and goodbyes", start: 2520, source: "title-moment", boundary: "clean" },
+          ];
+          chapters = structuredClone(sample);
+
+          chaptersElement = document.querySelector("#chapters");
+          statusElement = document.querySelector("#status");
+          issuesElement = document.querySelector("#issues");
+          countElement = document.querySelector("#count");
+
+          var added = 0;
+          document.querySelector("#addChapter").addEventListener("click", function () {
+            added += 1;
+            chapters.push({
+              id: "added-" + added,
+              title: "",
+              start: largestGapMidpoint(chapters),
+              source: "manual",
+              boundary: "clean",
+            });
+            render();
+          });
+
+          document.querySelector("#reset").addEventListener("click", function () {
+            added = 0;
+            chapters = structuredClone(sample);
+            render();
+          });
+
+          render();
+        }
+
+        if (typeof module !== "undefined" && module.exports) {
+          module.exports = {
+            STEP: STEP,
+            SHORT: SHORT,
+            OVERLAP: OVERLAP,
+            DURATION: DURATION,
+            SOURCES: SOURCES,
+            BOUNDARIES: BOUNDARIES,
+            fmt: fmt,
+            fmtDuration: fmtDuration,
+            evaluate: evaluate,
+            actionsFor: actionsFor,
+            applyAction: applyAction,
+            issueFor: issueFor,
+          };
+        }
+      })();
+    </script>
+  </body>
+</html>
