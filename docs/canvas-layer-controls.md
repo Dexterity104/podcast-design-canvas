@@ -52,7 +52,7 @@ Before a creator applies a layout across the episode or saves it as a reusable t
 
 - safe-area conflicts from `docs/layout-safe-areas.md` Checks
 - speaker visibility blockers from `docs/speaker-framing-safety.md` Checks and Creator Controls
-- destination-specific crop failures from `docs/destination-crop-previews.md` Checks and Fixes
+- destination-specific crop failures from `docs/destination-crop-previews.md` Checks and Creator Controls
 - brand readability risks from `docs/show-brand-kit-setup.md` Preview Surfaces and Guardrails
 - cross-speaker visual mismatch carried from `docs/speaker-visual-match.md` Review States and Connection to Preset and Canvas
 - speaker-count fallback choices from `docs/show-template-adaptation.md` Adaptation Flow when the current episode does not match the saved layout
@@ -80,8 +80,8 @@ When a canvas layout is saved as a reusable template, each adaptable element sho
 | guest names and lower-thirds | `docs/social-context-intake.md`, `docs/guest-profile-reuse.md` | Accepted Inputs, Review States; Reusable Details, Episode Review |
 | brand colors and logo placement | `docs/show-brand-kit-setup.md` | Brand Inputs, Reuse |
 | caption style | `docs/audio-caption-quality-review.md` | Caption Style Presets |
-| title moment treatment | `docs/contextual-broll-moments.md` | Visual Types, Approval Flow |
-| b-roll placement rules | `docs/contextual-broll-moments.md` | Approval Flow, Quality Rules |
+| title moment treatment | `docs/contextual-broll-moments.md` | Visual Types, Review States |
+| b-roll placement rules | `docs/contextual-broll-moments.md` | Review States, Quality Rules |
 
 The saved layout is applied to future episodes through `docs/show-template-adaptation.md` (Template Contents, Adaptation Flow). The canvas editor should store which elements adapt and hand off to these specs, not duplicate their behavior.
 
