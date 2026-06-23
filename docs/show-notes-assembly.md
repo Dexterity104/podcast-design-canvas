@@ -53,3 +53,7 @@ Before export, show notes should:
 If a destination does not need show notes, the item should stay optional and never block publish readiness for a solo creator.
 
 Show templates may remember section order, default link labels, and recurring boilerplate, but episode-specific summaries, chapters, guest links, and sponsor details should refresh before the notes are marked ready.
+
+## Maintainer Acceptance Notes
+
+Accept work that helps creators assemble accurate, destination-ready show notes from confirmed chapters, guests, glossary terms, and sponsor disclosures without opening a separate publishing screen. Close work that exposes raw transcript exports, SEO scoring, feed tags, or destination API settings, or that treats show notes as a detached content editor instead of an extension of confirmed metadata review.
