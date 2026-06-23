@@ -57,52 +57,31 @@ The product should use safe-area status to drive layout review and export readin
 - **clear** — no overlap conflict for the targeted surface and moment
 - **flagged** — show the conflict on the affected moment and preview surface; link directly to the fixing control
 - **adjusted** — apply the chosen placement change and refresh destination and mobile previews for that moment
-- **accepted** — keep the current overlap when the creator marks it intentional and clear only the related safe-area warning with the publishing consequence shown
+- **applied broadly** — carry the same adjustment to similar moments after the creator confirms it
+- **accepted** — keep the current overlap when the creator marks it intentional and clear only the related safe-area warning, with the publishing consequence shown
+- **blocked for export** — when the destination would hide captions, logos, or sponsor marks, hold export until the conflict is fixed or accepted with the consequence shown
 - **not relevant for destination** — hide safe-area checks that do not affect the chosen export package
 
 Each state should describe what happens in preview, export readiness, and template reuse—not only the label on the guide.
 
 ## Creator Controls
 
-Offer simple actions:
-
-- move captions, lower-thirds, logos, or sponsor marks
-- switch to an alternate placement zone
-- preview the conflict on mobile or thumbnail crops
-- apply a fix across similar moments
-- mark an overlap as intentional
-- save safe-area defaults to a show template
-
-Avoid static guides that never re-check real episode speakers, captions, or destination crops.
-
-## Review States
-
-Use simple creator-facing states:
-
-- flagged — show the overlap on the affected moment and destination preview
-- fixed — apply reposition or resize and refresh previews for that moment
-- applied broadly — carry the same adjustment to similar moments after confirmation
-- accepted — creator marks overlap as intentional and clears the related export warning
-- blocked for export — destination would hide captions, logos, or sponsor marks until fixed or ignored with consequence shown
-
-Each state should describe what happens in preview, export warnings, and the next creator action.
-
-## Template Behavior
-
-Safe areas should be saved with templates where appropriate, but each episode should re-check them against its actual speaker count, brand kit, and export destination.
-
-## Creator Controls
-
 Safe areas should be adjustable while staying tied to real episode content. The creator should be able to:
 
 - show or hide individual safe-area guides while designing the layout
-- resolve a flagged conflict by moving the caption, lower-third, logo, or sponsor mark out of the affected area
-- switch to an alternate layout for a destination crop when an element cannot fit safely
+- move captions, lower-thirds, logos, or sponsor marks out of an affected area
+- switch to an alternate placement zone or layout for a destination crop when an element cannot fit safely
+- preview the conflict on mobile or thumbnail crops
+- apply a fix across similar moments after confirmation
 - adjust a safe-area region for the current episode or save the change to the show template
 - re-check safe areas against a different export destination, speaker count, or brand kit
 - keep a deliberate overlap when the creator confirms it stays readable
 
 A safe-area change should re-check the affected moment and destination rather than applying a static guide everywhere.
+
+## Template Behavior
+
+Safe areas should be saved with templates where appropriate, but each episode should re-check them against its actual speaker count, brand kit, and export destination.
 
 ## Maintainer Acceptance Notes
 
