@@ -31,6 +31,25 @@ Flag only overlaps that affect the finished episode:
 
 Short intentional overlaps can stay quiet when speech remains clear.
 
+## Preview Contexts
+
+Creators should judge ducking on episode moments where speech clarity is easiest to lose:
+
+- the first spoken line after intro music
+- a guest answer under a chapter bumper
+- a sponsor read with bed music active
+- a transition where one speaker starts before the cue fully fades
+- an outro where the final sign-off overlaps the closing music
+
+These previews should let the creator hear the spoken line and the cue in the same context, not as detached volume controls.
+
+Useful ducking previews should also:
+
+- keep the same spoken line while the creator compares featured music versus lowered music
+- preserve nearby captions so the creator can tell when the cue makes speech less trustworthy to read
+- make the before-and-after timing difference obvious on the same episode moment
+- keep the listener focused on one decision: whether the words stay easy to follow
+
 ## Review States
 
 Use creator-facing states:
