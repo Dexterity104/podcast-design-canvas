@@ -412,8 +412,20 @@
       });
     }
 
+    // The Reset control only does something once a video is placed, so disable it while every
+    // slot is empty — a control that can't change anything shouldn't read as actionable.
+    function updateResetState() {
+      if (!resetButton) return;
+      const hasPlacement = zones.some((zone) => zone.classList.contains("filled"));
+      resetButton.disabled = !hasPlacement;
+      if (typeof resetButton.setAttribute === "function") {
+        resetButton.setAttribute("aria-disabled", hasPlacement ? "false" : "true");
+      }
+    }
+
     function updateSlotStatus(message) {
       updateSlotIndicators();
+      updateResetState();
       if (!slotStatus) return;
       if (message) {
         slotStatus.textContent = message;

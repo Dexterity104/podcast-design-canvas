@@ -192,6 +192,16 @@ assert.equal(
   "the Continue control is described by the live placement status",
 );
 
+// The Reset control is disabled until at least one video is placed — a control that can't
+// change anything should not look actionable — and re-disables once everything is cleared.
+assert.equal(elementsById["layout-reset"].getAttribute("aria-disabled"), "true", "Reset is disabled while every slot is empty");
+assert.equal(elementsById["layout-reset"].disabled, true, "Reset carries the disabled property while empty");
+controller.placeVideoFile(controller.zonesBySlot.host, video("reset-probe.mp4"));
+assert.equal(elementsById["layout-reset"].getAttribute("aria-disabled"), "false", "Reset enables once a video is placed");
+assert.equal(elementsById["layout-reset"].disabled, false, "Reset clears its disabled property once a video is placed");
+elementsById["layout-reset"].listeners.click();
+assert.equal(elementsById["layout-reset"].getAttribute("aria-disabled"), "true", "Reset disables again after everything is cleared");
+
 assert.match(html, /Start with a podcast layout/, "layout-first landing opens with layout selection");
 assert.match(html, /data-layout="interview"/, "layout-first offers an interview layout");
 assert.match(html, /data-layout="solo"/, "layout-first offers a solo layout");
