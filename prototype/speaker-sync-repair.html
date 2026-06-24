@@ -1199,11 +1199,14 @@
         const effect = repairEffects[track.proposedRepair];
         const effectCopy = typeof effect === "string" && effect.length ? effect : null;
         const issue = issues[track.issue];
+        const beforeNote = typeof issue?.description === "function"
+          ? issue.description(track.name)
+          : "Review sync timing at this moment.";
         const selectedMoment = previewMoments.find((entry) => entry.id === track.previewMoment);
         const momentLabel = selectedMoment?.label;
 
         compare.append(
-          renderPreviewCard("Before repair", before, false, issue.description(track.name), [], track),
+          renderPreviewCard("Before repair", before, false, beforeNote, [], track),
           renderPreviewCard(
             hasConfirmedRepair(track) ? "Repair confirmed" : "With repair",
             after,
@@ -1225,10 +1228,10 @@
         }
         const focusNote = issues[track.issue]?.moment;
         if (focusNote) {
-          const issueNote = document.createElement("p");
-          issueNote.className = "compare-issue-note";
-          issueNote.textContent = `Focus on: ${focusNote}`;
-          wrap.appendChild(issueNote);
+          const focusCopy = document.createElement("p");
+          focusCopy.className = "compare-issue-note";
+          focusCopy.textContent = `Focus on: ${focusNote}`;
+          wrap.appendChild(focusCopy);
         }
         wrap.appendChild(compare);
         return wrap;
