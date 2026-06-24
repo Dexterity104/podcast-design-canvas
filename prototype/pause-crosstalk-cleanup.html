@@ -83,18 +83,22 @@
 
       .moment {
         display: grid;
-        grid-template-columns: 130px minmax(0, 1fr);
-        gap: 14px;
+        gap: 12px;
         padding: 14px;
         border: 1px solid var(--line);
         border-radius: 8px;
         background: #ffffff;
       }
 
-      .when {
-        display: grid;
+      .moment.dimmed {
+        opacity: 0.62;
+      }
+
+      .moment-head {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
         gap: 8px;
-        align-content: start;
       }
 
       .time {
@@ -103,7 +107,6 @@
       }
 
       .speaker {
-        justify-self: start;
         font-size: 12px;
         color: var(--muted);
         background: #eef2f0;
@@ -111,56 +114,19 @@
         padding: 2px 9px;
       }
 
-      .fields {
-        display: grid;
-        gap: 10px;
-        align-content: start;
-      }
-
-      .head {
-        display: flex;
-        align-items: flex-start;
-        justify-content: space-between;
-        gap: 10px;
-      }
-
-      .context {
-        color: var(--ink);
-        font-size: 14px;
-        line-height: 1.45;
-        margin: 0;
-        flex: 1 1 auto;
-        min-width: 0;
-      }
-
-      .controls-row {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 10px;
-      }
-
-      label {
-        display: grid;
-        gap: 6px;
-      }
-
-      .lbl {
-        color: var(--muted);
+      /* The detected kind is a non-editable label, not an editable taxonomy: the
+         creator's job here is to decide the cleanup, not to reclassify detection. */
+      .kind-label {
         font-size: 13px;
-      }
-
-      select {
-        width: 100%;
-        min-height: 40px;
-        border: 1px solid #bfcbc7;
-        border-radius: 6px;
-        background: #ffffff;
-        color: var(--ink);
-        font: inherit;
-        padding: 8px 10px;
+        font-weight: 800;
+        color: #0d4a41;
+        background: #dff1ec;
+        border-radius: 999px;
+        padding: 2px 10px;
       }
 
       .badge {
+        margin-left: auto;
         display: inline-flex;
         align-items: center;
         min-height: 28px;
@@ -186,10 +152,224 @@
         background: #ffe0e0;
       }
 
-      .row-actions {
+      .context {
+        color: var(--ink);
+        font-size: 14px;
+        line-height: 1.45;
+        margin: 0;
+      }
+
+      /* ---- Moment preview (waveform/timeline) -------------------------------- */
+      .wave {
+        position: relative;
+        height: 70px;
+        border-radius: 7px;
+        background: linear-gradient(180deg, #10302c 0%, #0c2623 100%);
+        border: 1px solid #173f3a;
+        overflow: hidden;
+      }
+
+      .lane {
+        position: absolute;
+        left: 0;
+        right: 0;
+        height: 38%;
+      }
+
+      .lane.primary {
+        top: 9%;
+      }
+
+      .lane.secondary {
+        bottom: 9%;
+      }
+
+      .lane-name {
+        position: absolute;
+        left: 7px;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 3;
+        color: #cfe7e1;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        background: rgba(6, 18, 16, 0.55);
+        padding: 1px 6px;
+        border-radius: 999px;
+        pointer-events: none;
+      }
+
+      /* A speech segment, drawn as a simple voice-activity waveform. */
+      .seg {
+        position: absolute;
+        top: 12%;
+        bottom: 12%;
+        border-radius: 3px;
+        background-color: rgba(111, 176, 166, 0.16);
+        background-image: repeating-linear-gradient(
+          90deg,
+          rgba(120, 196, 184, 0.95) 0 2px,
+          rgba(120, 196, 184, 0.2) 2px 5px
+        );
+      }
+
+      .seg.faint {
+        opacity: 0.3;
+      }
+
+      .seg.spike {
+        top: -6%;
+        bottom: -6%;
+        background-image: repeating-linear-gradient(
+          90deg,
+          rgba(255, 130, 130, 0.95) 0 2px,
+          rgba(255, 130, 130, 0.3) 2px 5px
+        );
+        background-color: rgba(165, 40, 40, 0.25);
+      }
+
+      .seg.spike.flat {
+        top: 30%;
+        bottom: 30%;
+        background-image: repeating-linear-gradient(
+          90deg,
+          rgba(120, 196, 184, 0.9) 0 2px,
+          rgba(120, 196, 184, 0.25) 2px 5px
+        );
+        background-color: rgba(111, 176, 166, 0.16);
+      }
+
+      /* The flagged window: a labeled bracket over the moment, tinted by decision. */
+      .window {
+        position: absolute;
+        top: 4%;
+        bottom: 4%;
+        border-radius: 5px;
+        z-index: 2;
+        border: 1px solid transparent;
+      }
+
+      .window .wlabel {
+        position: absolute;
+        left: 50%;
+        top: -2px;
+        transform: translate(-50%, -100%);
+        white-space: nowrap;
+        font-size: 10px;
+        font-weight: 800;
+        padding: 1px 7px;
+        border-radius: 999px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+      }
+
+      .window.gap {
+        background: repeating-linear-gradient(45deg, rgba(8, 20, 18, 0.6) 0 7px, rgba(8, 20, 18, 0.3) 7px 14px);
+      }
+
+      .window.t-review {
+        border-color: rgba(255, 196, 120, 0.85);
+      }
+      .window.t-review .wlabel {
+        background: #fff1d6;
+        color: #7a4400;
+      }
+
+      .window.t-block {
+        border-color: rgba(255, 120, 120, 0.9);
+        background: rgba(165, 40, 40, 0.22);
+      }
+      .window.t-block .wlabel {
+        background: #ffe0e0;
+        color: #8b1e1e;
+      }
+
+      .window.t-clean {
+        border-color: rgba(120, 210, 190, 0.9);
+        background: rgba(19, 111, 99, 0.16);
+      }
+      .window.t-clean .wlabel {
+        background: #dff5ef;
+        color: #075246;
+      }
+
+      .window.t-natural {
+        border-color: rgba(150, 196, 188, 0.7);
+        border-style: dashed;
+      }
+      .window.t-natural .wlabel {
+        background: #e7efec;
+        color: #3f574f;
+      }
+
+      .window.t-muted {
+        border-color: rgba(180, 190, 186, 0.6);
+        border-style: dashed;
+      }
+      .window.t-muted .wlabel {
+        background: #eceeed;
+        color: #5e6b67;
+      }
+
+      .cc-mark {
+        position: absolute;
+        right: 7px;
+        bottom: 6px;
+        z-index: 3;
+        font-size: 10px;
+        font-weight: 800;
+        color: #8b1e1e;
+        background: #ffe0e0;
+        border-radius: 4px;
+        padding: 1px 6px;
+      }
+
+      .wave-meta {
         display: flex;
         flex-wrap: wrap;
-        gap: 8px;
+        align-items: baseline;
+        gap: 6px;
+        margin-top: 6px;
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      .wave-meta .arrow {
+        color: var(--accent);
+        font-weight: 800;
+      }
+
+      .wave-meta .after {
+        color: #0d4a41;
+        font-weight: 700;
+      }
+
+      .controls-row {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: end;
+        gap: 10px;
+      }
+
+      label {
+        display: grid;
+        gap: 6px;
+      }
+
+      .lbl {
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      select {
+        width: 100%;
+        min-height: 40px;
+        border: 1px solid #bfcbc7;
+        border-radius: 6px;
+        background: #ffffff;
+        color: var(--ink);
+        font: inherit;
+        padding: 8px 10px;
       }
 
       .status {
@@ -271,10 +451,10 @@
       }
 
       button.mini {
-        min-height: 34px;
-        padding: 6px 10px;
+        min-height: 40px;
+        padding: 6px 12px;
         font-size: 13px;
-        font-weight: 700;
+        white-space: nowrap;
       }
 
       .summary-note {
@@ -288,12 +468,12 @@
           grid-template-columns: 1fr;
         }
 
-        .moment {
+        .controls-row {
           grid-template-columns: 1fr;
         }
 
-        .controls-row {
-          grid-template-columns: 1fr;
+        button.mini {
+          width: 100%;
         }
       }
     </style>
@@ -301,7 +481,7 @@
   <body>
     <main>
       <h1>Pause and cross-talk cleanup</h1>
-      <p class="lede">Review awkward pauses, false starts, and heavy cross-talk in a long episode, then decide what to soften before export. Nothing changes until you choose &mdash; natural pauses and back-and-forth stay unless you say otherwise.</p>
+      <p class="lede">Review awkward pauses, false starts, and heavy cross-talk in a long episode and decide what to soften before export. Each moment shows what was detected and what your choice would change, so you can judge it without scrubbing the timeline. Nothing changes until you choose &mdash; natural pauses and back-and-forth stay unless you say otherwise.</p>
 
       <section class="workspace" aria-label="Pause and cross-talk cleanup workspace">
         <div class="panel">
@@ -328,26 +508,37 @@
       (function () {
         "use strict";
 
-        // Each detected moment kind offers only the cleanup choices that make sense
-        // for it, and every choice in a kind leads to a DIFFERENT review state — so no
-        // option in a dropdown is ever a no-op.
+        // structuredClone is missing in some older embedded/webview contexts; fall
+        // back to a JSON round-trip, which is sufficient for this plain-data sample.
+        function clone(value) {
+          if (typeof structuredClone === "function") {
+            return structuredClone(value);
+          }
+          return JSON.parse(JSON.stringify(value));
+        }
+
+        // Each detected moment kind has a waveform archetype (how it looks on the
+        // preview), a suggested cleanup, and only the cleanup choices that make sense
+        // for it — every choice leads to a DIFFERENT review state, so no option in a
+        // dropdown is ever a no-op.
         var KINDS = {
-          "dead-air": { label: "Long dead air", steps: ["suggested", "shorten", "keep", "ignore"] },
-          "false-start": { label: "Repeated false starts", steps: ["suggested", "shorten", "keep", "ignore"] },
-          "cross-talk": { label: "Cross-talk hides words", steps: ["suggested", "reduce", "keep", "caption", "ignore"] },
-          interruption: { label: "Interrupted a guest answer", steps: ["suggested", "reduce", "keep", "caption", "ignore"] },
-          bump: { label: "Cough or bump over speech", steps: ["suggested", "reduce", "keep", "ignore"] },
-          "trailing-silence": { label: "Long silence after a speaker left", steps: ["suggested", "shorten", "keep", "ignore"] },
+          "dead-air": { label: "Long dead air", viz: "gap", suggest: "shorten", steps: ["suggested", "shorten", "keep", "ignore"] },
+          "trailing-silence": { label: "Long silence after a speaker left", viz: "gap", suggest: "shorten", steps: ["suggested", "shorten", "keep", "ignore"] },
+          "false-start": { label: "Repeated false starts", viz: "stutter", suggest: "shorten", steps: ["suggested", "shorten", "keep", "ignore"] },
+          "cross-talk": { label: "Cross-talk hides words", viz: "overlap", suggest: "reduce", steps: ["suggested", "reduce", "keep", "caption", "ignore"] },
+          interruption: { label: "Interrupted a guest answer", viz: "overlap", suggest: "reduce", steps: ["suggested", "reduce", "keep", "caption", "ignore"] },
+          bump: { label: "Cough or bump over speech", viz: "spike", suggest: "reduce", steps: ["suggested", "reduce", "keep", "ignore"] },
         };
 
-        // A creator choice maps to one of the spec's review states.
+        // A creator choice maps to one of the spec's review states; `short` is the
+        // verb shown as the suggested action while a moment is still undecided.
         var DISPOSITIONS = {
-          suggested: { label: "Decide later", state: "suggested" },
-          shorten: { label: "Shorten the pause", state: "softened" },
-          reduce: { label: "Reduce the background sound", state: "softened" },
-          keep: { label: "Keep this moment (intentional)", state: "kept natural" },
-          caption: { label: "Review captions here", state: "needs caption review" },
-          ignore: { label: "Ignore for export", state: "ignored for export" },
+          suggested: { label: "Decide later", short: "decide", state: "suggested" },
+          shorten: { label: "Shorten the pause", short: "shorten", state: "softened" },
+          reduce: { label: "Reduce the background sound", short: "reduce", state: "softened" },
+          keep: { label: "Keep this moment (intentional)", short: "keep", state: "kept natural" },
+          caption: { label: "Review captions here", short: "caption review", state: "needs caption review" },
+          ignore: { label: "Ignore for export", short: "ignore", state: "ignored for export" },
         };
 
         function validKind(kind) {
@@ -364,6 +555,16 @@
             return h + ":" + mm + ":" + ss;
           }
           return m + ":" + ss;
+        }
+
+        function clampPct(value, lo, hi) {
+          return Math.max(lo, Math.min(hi, value));
+        }
+
+        // The shortened length we'd trim a long pause down to: proportional, but never
+        // below a natural breath. Drives both the preview and the before/after text.
+        function shortenTo(seconds) {
+          return Math.max(0.8, Math.round(seconds * 0.35 * 10) / 10);
         }
 
         // Single source of truth: reconcile each moment to a valid kind + choice, then
@@ -404,8 +605,7 @@
         // The moments "Apply to similar" would actually change: other moments of the
         // same kind that currently hold a DIFFERENT choice. Single source of truth for
         // both the control's visibility and its count, so the button only ever appears
-        // when it would change something, and its number never overstates its reach —
-        // same-kind moments that already match are not counted and not announced.
+        // when it would change something, and its number never overstates its reach.
         function similarToChange(index, list) {
           var me = list[index];
           if (!me) {
@@ -417,8 +617,6 @@
           });
         }
 
-        // "Apply to similar" is only offered when it would change at least one other
-        // moment — otherwise the control would be a no-op.
         function canApplySimilar(index, list) {
           return similarToChange(index, list).length > 0;
         }
@@ -433,6 +631,8 @@
               id: other.id,
               at: other.at,
               speaker: other.speaker,
+              other: other.other,
+              seconds: other.seconds,
               context: other.context,
               kind: other.kind,
               disp: same ? disp : other.disp,
@@ -440,9 +640,96 @@
           });
         }
 
-        // Exactly how many moments the button will change — the number shown on it.
         function countSimilar(index, list) {
           return similarToChange(index, list).length;
+        }
+
+        // Pure: describe how a moment should be drawn on its waveform strip, derived
+        // only from the reconciled kind + choice. No DOM here, so it is unit-testable
+        // alongside evaluate(). This is what makes each decision judgeable: the strip
+        // shows the detected issue AND what the chosen cleanup would change.
+        function momentPreview(item, result) {
+          var kind = KINDS[result.kind];
+          var viz = kind.viz;
+          var disp = result.disp;
+          var seconds = typeof item.seconds === "number" ? item.seconds : 0;
+
+          var state;
+          var tone;
+          var changed = false;
+          if (disp === "suggested") {
+            state = "suggested";
+            tone = "review";
+          } else if (disp === "shorten" || disp === "reduce") {
+            state = "softened";
+            tone = "clean";
+            changed = true;
+          } else if (disp === "keep") {
+            state = "kept";
+            tone = "natural";
+          } else if (disp === "caption") {
+            state = "caption";
+            tone = "block";
+            changed = true;
+          } else {
+            state = "ignored";
+            tone = "muted";
+            changed = true;
+          }
+
+          // What review found, in plain language (the "before").
+          var before;
+          if (viz === "gap") {
+            before = seconds.toFixed(1) + "s " + (result.kind === "trailing-silence" ? "trailing silence" : "pause");
+          } else if (viz === "overlap") {
+            before = "voices overlap";
+          } else if (viz === "spike") {
+            before = "cough over speech";
+          } else {
+            before = "false starts";
+          }
+
+          // What the chosen cleanup changes (the "after"); while still suggested we
+          // instead hint at the suggested action.
+          var after;
+          if (disp === "suggested") {
+            after = "suggested: " + DISPOSITIONS[kind.suggest].short;
+          } else if (disp === "shorten") {
+            after = viz === "gap" ? shortenTo(seconds).toFixed(1) + "s gap" : "trimmed to clean take";
+          } else if (disp === "reduce") {
+            after = viz === "spike" ? "cough reduced" : "background reduced";
+          } else if (disp === "keep") {
+            after = "kept natural";
+          } else if (disp === "caption") {
+            after = "caption review queued";
+          } else {
+            after = "left as-is, off export";
+          }
+
+          var fullGap = clampPct(seconds * 5.5, 10, 42);
+          var gapPercent = viz === "gap"
+            ? (disp === "shorten" ? clampPct(shortenTo(seconds) * 5.5, 6, 42) : fullGap)
+            : 28;
+
+          return {
+            viz: viz,
+            primary: item.speaker,
+            secondary: item.other || null,
+            state: state,
+            tone: tone,
+            before: before,
+            after: after,
+            changed: changed,
+            // The bracket label reads as the situation when undecided/kept, and as the
+            // resulting change once the creator has softened/queued/ignored it.
+            windowLabel: disp === "suggested" || disp === "keep" ? before : after,
+            gapPercent: gapPercent,
+            reducedSecondary: viz === "overlap" && disp === "reduce",
+            flatSpike: viz === "spike" && disp === "reduce",
+            mergedStutter: viz === "stutter" && disp === "shorten",
+            captionMark: disp === "caption",
+            dim: disp === "ignore",
+          };
         }
 
         // ---- DOM rendering (browser only) ----------------------------------------
@@ -457,6 +744,9 @@
             // All dynamic text goes through textContent; this prototype has no free
             // text inputs at all, so there is no path from typed input into markup.
             node.textContent = options.text;
+          }
+          if (options.style) {
+            node.setAttribute("style", options.style);
           }
           if (options.attrs) {
             Object.keys(options.attrs).forEach(function (key) {
@@ -486,6 +776,66 @@
           return "ready";
         }
 
+        function seg(left, width, extra) {
+          return el("span", { className: "seg" + (extra ? " " + extra : ""), style: "left:" + left + "%;width:" + width + "%;" });
+        }
+
+        // Build the waveform strip for a moment from its pure preview model. The geometry
+        // is positional only; all decision meaning comes from momentPreview().
+        function renderWave(model) {
+          var winLeft = 50 - model.gapPercent / 2;
+          var winRight = winLeft + model.gapPercent;
+
+          var primaryLane = el("div", { className: "lane primary" }, [
+            el("span", { className: "lane-name", text: model.primary }),
+          ]);
+          var laneChildren = [primaryLane];
+
+          if (model.viz === "gap") {
+            // Speech, then a gap (the pause), then speech. The gap narrows when the
+            // creator shortens it — the visible before/after of the decision.
+            primaryLane.appendChild(seg(4, Math.max(2, winLeft - 8)));
+            primaryLane.appendChild(seg(winRight + 4, Math.max(2, 92 - winRight)));
+          } else if (model.viz === "stutter") {
+            // A cluster of false starts, then the clean take. Shortening removes them.
+            if (model.mergedStutter) {
+              primaryLane.appendChild(seg(4, 88));
+            } else {
+              primaryLane.appendChild(seg(4, 6));
+              primaryLane.appendChild(seg(13, 5));
+              primaryLane.appendChild(seg(21, 6));
+              primaryLane.appendChild(seg(winRight + 2, Math.max(2, 90 - winRight)));
+            }
+          } else if (model.viz === "spike") {
+            // Continuous speech with a cough/bump spike; reducing flattens the spike.
+            primaryLane.appendChild(seg(4, 92));
+            primaryLane.appendChild(seg(47, 6, "spike" + (model.flatSpike ? " flat" : "")));
+          } else if (model.viz === "overlap") {
+            // Two speakers active at once across the window. Reducing drops the second
+            // voice to a faint level instead of removing the exchange.
+            primaryLane.appendChild(seg(4, 92));
+            var secondaryLane = el("div", { className: "lane secondary" }, [
+              el("span", { className: "lane-name", text: model.secondary || "Other" }),
+              seg(4, Math.max(2, winLeft - 6)),
+              seg(winLeft, model.gapPercent, model.reducedSecondary ? "faint" : null),
+              seg(winRight + 2, Math.max(2, 90 - winRight)),
+            ]);
+            laneChildren.push(secondaryLane);
+          }
+
+          var win = el("div", {
+            className: "window t-" + model.tone + (model.viz === "gap" ? " gap" : ""),
+            style: "left:" + winLeft + "%;width:" + model.gapPercent + "%;",
+          }, [el("span", { className: "wlabel", text: model.windowLabel })]);
+          laneChildren.push(win);
+
+          if (model.captionMark) {
+            laneChildren.push(el("span", { className: "cc-mark", text: "CC review" }));
+          }
+
+          return el("div", { className: "wave", attrs: { "aria-hidden": "true" } }, laneChildren);
+        }
+
         function selectControl(labelText, ariaLabel, options, current, onChange) {
           var select = el("select", {
             attrs: { "aria-label": ariaLabel },
@@ -513,26 +863,25 @@
         var countElement;
 
         function renderMoment(moment, index, result) {
-          var when = el("div", { className: "when" }, [
+          var model = momentPreview(moment, result);
+
+          var head = el("div", { className: "moment-head" }, [
             el("span", { className: "time", text: fmt(moment.at) }),
             el("span", { className: "speaker", text: moment.speaker }),
+            // Detected kind shown as a non-editable label — the creator decides the
+            // cleanup, they do not reclassify what detection found.
+            el("span", { className: "kind-label", text: KINDS[result.kind].label }),
+            el("span", { className: "badge " + badgeClass(result.state), text: result.state }),
           ]);
 
           var context = el("p", { className: "context", text: moment.context });
-          var badge = el("span", { className: "badge " + badgeClass(result.state), text: result.state });
-          var head = el("div", { className: "head" }, [context, badge]);
 
-          var kindOptions = Object.keys(KINDS).map(function (key) {
-            return { value: key, label: KINDS[key].label };
-          });
-          var kindControl = selectControl("What review found", "Detected moment", kindOptions, result.kind, function (value) {
-            moment.kind = value;
-            // Drop a choice that is not valid for the new kind.
-            if (KINDS[validKind(value)].steps.indexOf(moment.disp) < 0) {
-              moment.disp = "suggested";
-            }
-            render();
-          });
+          var wave = renderWave(model);
+          var meta = el("p", { className: "wave-meta" }, [
+            el("span", { text: "Detected: " + model.before }),
+            model.changed ? el("span", { className: "arrow", text: "→" }) : null,
+            el("span", { className: model.changed ? "after" : "", text: model.after }),
+          ]);
 
           var dispOptions = KINDS[result.kind].steps.map(function (key) {
             return { value: key, label: DISPOSITIONS[key].label };
@@ -542,11 +891,9 @@
             render();
           });
 
-          var controls = el("div", { className: "controls-row" }, [kindControl, dispControl]);
-
-          var children = [head, controls];
+          var rowChildren = [dispControl];
           if (canApplySimilar(index, moments)) {
-            var rowActions = el("div", { className: "row-actions" }, [
+            rowChildren.push(
               el("button", {
                 className: "mini secondary",
                 text: "Apply to " + countSimilar(index, moments) + " similar",
@@ -557,13 +904,15 @@
                     render();
                   },
                 },
-              }),
-            ]);
-            children.push(rowActions);
+              })
+            );
           }
+          var controls = el("div", { className: "controls-row" }, rowChildren);
 
-          var fields = el("div", { className: "fields" }, children);
-          return el("article", { className: "moment", attrs: { "data-index": String(index) } }, [when, fields]);
+          return el("article", {
+            className: "moment" + (model.dim ? " dimmed" : ""),
+            attrs: { "data-index": String(index) },
+          }, [head, context, wave, meta, controls]);
         }
 
         function renderIssue(issue) {
@@ -632,6 +981,7 @@
               at: 185,
               speaker: "Guest 1",
               kind: "dead-air",
+              seconds: 4.0,
               disp: "suggested",
               context: "“…and that was the moment everything changed.” [4s of silence] “…anyway, where was I?”",
             },
@@ -639,6 +989,7 @@
               id: "m2",
               at: 642,
               speaker: "Host",
+              other: "Guest 1",
               kind: "cross-talk",
               disp: "reduce",
               context: "“…so the real question is —” [both talking] “— exactly, that is what I mean.”",
@@ -647,6 +998,7 @@
               id: "m3",
               at: 1377,
               speaker: "Guest 1",
+              other: "Host",
               kind: "interruption",
               disp: "suggested",
               context: "“My biggest mistake was —” “sorry, go on” “no, no — you first.”",
@@ -675,12 +1027,13 @@
               id: "m6",
               at: 3245,
               speaker: "Guest 2",
+              other: "Host",
               kind: "cross-talk",
               disp: "keep",
               context: "“…and honestly that surprised me —” [both laughing over each other] “— no, you go, you go.”",
             },
           ];
-          moments = structuredClone(sample);
+          moments = clone(sample);
 
           momentsElement = document.querySelector("#moments");
           statusElement = document.querySelector("#status");
@@ -688,7 +1041,7 @@
           countElement = document.querySelector("#count");
 
           document.querySelector("#reset").addEventListener("click", function () {
-            moments = structuredClone(sample);
+            moments = clone(sample);
             render();
           });
 
@@ -699,8 +1052,12 @@
           module.exports = {
             KINDS: KINDS,
             DISPOSITIONS: DISPOSITIONS,
+            clone: clone,
             fmt: fmt,
+            shortenTo: shortenTo,
             evaluate: evaluate,
+            momentPreview: momentPreview,
+            similarToChange: similarToChange,
             canApplySimilar: canApplySimilar,
             applySimilar: applySimilar,
             countSimilar: countSimilar,
