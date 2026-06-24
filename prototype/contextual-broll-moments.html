@@ -392,6 +392,7 @@
         { id: "m2", reason: "Host introduces a new segment", type: "title", strength: "standard", source: "transcript", decision: "suggested" },
         { id: "m3", reason: "Guest names their company", type: "web", strength: "prominent", source: "reference", decision: "suggested" },
         { id: "m4", reason: "Quotable line from the host", type: "quote", strength: "subtle", source: "manual", decision: "approved" },
+        { id: "m5", reason: "Full-screen product shot during the answer", type: "product", strength: "prominent", source: "manual", decision: "approved" },
       ];
 
       let moments = structuredClone(sampleMoments);
@@ -457,6 +458,17 @@
               tone: "review",
               fixScreen: "social-context-intake.html",
               fixLabel: "social context intake",
+            };
+          } else if (isLive(moment.decision) && moment.strength === "prominent") {
+            // A prominent live visual is the one most likely to cover the person talking,
+            // so it asks for a framing-safety check instead of silently shipping.
+            state = "review";
+            issue = {
+              title: `"${moment.reason}" may cover the active speaker`,
+              action: "A prominent visual can hide the person talking. Check it in speaker framing safety, or lower its strength.",
+              tone: "review",
+              fixScreen: "speaker-framing-safety.html",
+              fixLabel: "speaker framing safety",
             };
           } else if (moment.decision === "adjusted") {
             state = "approved";
