@@ -335,6 +335,9 @@ assert.equal(
   "re-filling the removed slot restores the continue handoff",
 );
 
+// Start the panel scenario from a clean slate (earlier switches set videos aside, which
+// now persist across compatible layouts — see the dedicated preserve test below).
+controller.resetVideos();
 controller.applyLayout("panel");
 assert.equal(controller.requiredSlots().length, 3, "panel requires host and two guest videos");
 controller.placeVideoFile(controller.zonesBySlot.host, video("panel-host.mp4"));
@@ -402,6 +405,24 @@ preserve.applyLayout("solo");
 assert.equal(preserve.zonesBySlot.host.classList.contains("filled"), true, "switching to solo keeps the still-visible host video");
 assert.equal(preserve.zonesBySlot.guest.classList.contains("filled"), false, "a slot that leaves the layout is cleared");
 assert.ok(revokedUrls.includes("blob:p-guest.mp4"), "leaving a slot revokes its object URL");
+
+// Switching back to a compatible layout restores a video that was set aside, so toggling
+// layouts never silently discards a creator's placement (#1026 / #1131).
+preserve.applyLayout("interview");
+assert.equal(
+  preserve.zonesBySlot.guest.classList.contains("filled"),
+  true,
+  "switching back to a compatible layout restores the set-aside guest video",
+);
+assert.equal(
+  preserve.zonesBySlot.guest.dataset.fileName,
+  "p-guest.mp4",
+  "the restored slot holds the original recording",
+);
+assert.ok(
+  createdUrls.filter((url) => url === "blob:p-guest.mp4").length >= 2,
+  "restoring a set-aside video recreates its object URL",
+);
 
 // Source movement is keyed on file identity (name + size + modified time), not display
 // name. The same recording moves out of its old slot before filling the new one, while
@@ -622,5 +643,56 @@ assert.equal(slotState("guest").hidden, true, "a slot hidden by the solo layout 
 assert.equal(slotState("host").textContent, "Needs video", "solo's single required slot still flags missing when empty");
 
 assert.match(html, /\.slot-state/, "layout-first styles the per-slot status badge");
+
+// A video set aside when its slot is hidden must NOT restore as a duplicate after the same
+// source is reused in another slot. Reusing the source drops it from the set-aside cache, so
+// switching back leaves the hidden slot empty (source identity holds across switches). Fresh.
+const reuseZones = [
+  makeZone("host"),
+  makeZone("guest"),
+  makeZone("guest-b", "drop-zone is-hidden"),
+  makeZone("broll"),
+];
+const reuseButtons = [
+  makeLayoutButton("interview", "Using interview"),
+  makeLayoutButton("solo", "Use solo"),
+  makeLayoutButton("panel", "Use panel"),
+];
+const reuseById = {
+  "layout-scene-label": new Element("span"),
+  "layout-runtime-label": new Element("span"),
+  "speaker-row": new Element("div", { className: "speaker-row" }),
+  "layout-slot-status": new Element("p"),
+  "layout-reset": new Element("button"),
+  "layout-continue": new Element("a", { className: "continue-btn is-disabled" }),
+  "layout-error-card": new Element("div", { hidden: true }),
+  "layout-error": new Element("p"),
+};
+const reuseDoc = {
+  createElement(tagName) { return new Element(tagName); },
+  getElementById(id) { return reuseById[id] || null; },
+  querySelectorAll(selector) {
+    if (selector === "[data-layout]") return reuseButtons;
+    if (selector === ".drop-zone[data-slot]") return reuseZones;
+    return [];
+  },
+};
+const reuse = createLayoutFirstController(reuseDoc, { URL: urlApi });
+const reusedSource = { name: "shared.mp4", type: "video/mp4", size: 4096, lastModified: 1717100000000 };
+reuse.applyLayout("panel");
+reuse.placeVideoFile(reuse.zonesBySlot["guest-b"], reusedSource);
+assert.equal(reuse.zonesBySlot["guest-b"].classList.contains("filled"), true, "the source is placed in guest-b");
+reuse.applyLayout("interview"); // guest-b leaves the layout and is set aside
+assert.equal(reuse.zonesBySlot["guest-b"].classList.contains("filled"), false, "guest-b is hidden after switching to interview");
+reuse.placeVideoFile(reuse.zonesBySlot.host, reusedSource); // the same source is reused in a visible slot
+assert.equal(reuse.zonesBySlot.host.classList.contains("filled"), true, "the source is now placed in host");
+reuse.applyLayout("panel"); // guest-b returns
+assert.equal(
+  reuse.zonesBySlot["guest-b"].classList.contains("filled"),
+  false,
+  "a set-aside source does not restore as a duplicate after it was reused in another slot",
+);
+assert.equal(reuse.zonesBySlot.host.classList.contains("filled"), true, "the reused source stays in its new slot");
+assert.deepEqual(reuse.duplicateFileNames(), [], "no duplicate recording across slots after switching back");
 
 console.log("layout-first landing: required speaker readiness, optional b-roll, per-slot status, handoff, and layout-switch preservation verified");

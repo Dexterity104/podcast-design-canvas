@@ -115,6 +115,9 @@
 
     let currentLayout = "interview";
     let objectUrls = [];
+    // Videos set aside when their slot leaves the current layout, keyed by slot, so
+    // switching back to a compatible layout restores the placement instead of discarding it.
+    const setAside = Object.create(null);
 
     function currentDefinition() {
       return layouts[currentLayout] || layouts.interview;
@@ -309,10 +312,13 @@
       if (input) input.value = "";
       zone.dataset.fileName = "";
       zone.dataset.fileSig = "";
+      zone.placedFile = null;
     }
 
     function clearAllZones() {
       zones.forEach(clearZone);
+      // Reset starts the layout over, so nothing stays set aside for a later switch.
+      Object.keys(setAside).forEach((slot) => delete setAside[slot]);
     }
 
     function clearMatchingSource(zone, file) {
@@ -323,6 +329,13 @@
       zones.forEach((other) => {
         if (other !== zone && other.dataset.fileSig === incomingSig) {
           clearZone(other);
+        }
+      });
+      // A source lives in only one slot. Also drop it from the set-aside cache so a hidden
+      // slot can't later restore it as a duplicate of a placement just made in another slot.
+      Object.keys(setAside).forEach((slot) => {
+        if (fileSignature(setAside[slot]) === incomingSig) {
+          delete setAside[slot];
         }
       });
     }
@@ -356,6 +369,9 @@
       zone.classList.add("filled");
       zone.dataset.fileName = file.name || "";
       zone.dataset.fileSig = fileSignature(file);
+      // Retain the source File so this placement can be set aside and restored intact when
+      // the creator switches layouts.
+      zone.placedFile = file;
 
       const wrap = doc.createElement("div");
       wrap.className = "placed-video";
@@ -429,7 +445,23 @@
         const isVisible = visible.has(zone.dataset.slot);
         zone.classList.toggle("is-hidden", !isVisible);
         if (!isVisible) {
+          // Set the placed video aside (don't destroy it) when its slot leaves the layout,
+          // so switching back to a compatible layout restores the creator's work.
+          if (zone.classList.contains("filled") && zone.placedFile) {
+            setAside[zone.dataset.slot] = zone.placedFile;
+          }
           clearZone(zone);
+        }
+      });
+
+      // Restore any set-aside video whose slot is visible again (unless the creator already
+      // placed something new there).
+      zones.forEach((zone) => {
+        const slot = zone.dataset.slot;
+        if (visible.has(slot) && setAside[slot] && !zone.classList.contains("filled")) {
+          const file = setAside[slot];
+          delete setAside[slot];
+          placeVideoFile(zone, file);
         }
       });
 
