@@ -1,0 +1,5 @@
+{
+  "_comment": "Builder Loops verification manifest. test = prototype smoke suite; acceptance = the user-facing preview product flows (a hard gate: a PR that breaks these is auto-closed).",
+  "test": "node scripts/run-tests.mjs prototype",
+  "acceptance": "node scripts/run-tests.mjs preview"
+}
