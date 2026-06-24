@@ -500,7 +500,14 @@
                     fixScreen: "speaker-framing-safety.html",
                     fixLabel: "speaker framing safety",
                   }
-                  : {}),
+                  : row.check === "unreadable"
+                    ? {
+                      // "Too small to read" is a readability problem owned by the
+                      // accessibility & readability checks screen.
+                      fixScreen: "accessibility-readability-checks.html",
+                      fixLabel: "accessibility & readability checks",
+                    }
+                    : {}),
             };
           }
 
