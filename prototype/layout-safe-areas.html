@@ -253,6 +253,29 @@
         filter: blur(0.6px);
       }
 
+      /* A branded mark placed safely but with no on-screen sponsorship label: the
+         position is fine, so it is flagged (amber outline + note), not moved. */
+      .el.disclosure {
+        left: 12%;
+        right: 12%;
+        bottom: 12%;
+        height: 18%;
+        background: rgba(255, 255, 255, 0.85);
+        box-shadow: 0 0 0 2px rgba(161, 92, 0, 0.7);
+      }
+
+      .el.disclosure::after {
+        content: "no \201CSponsored\201D label";
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 9px;
+        font-weight: 800;
+        color: #8b1e1e;
+      }
+
       .issues {
         display: grid;
         gap: 10px;
@@ -402,6 +425,15 @@
           title: (el) => `${el} is too small to read at this size`,
           suggest: "Increase its size, switch to a simpler layout, or accept it.",
         },
+        disclosure: {
+          // Placement is fine; the gap is a missing on-screen sponsorship label, so the
+          // resolution is to add the label, not to move the element.
+          label: "Missing the “Sponsored” label",
+          preview: "disclosure",
+          fixes: ["review", "label", "accept"],
+          title: (el) => `${el} is a paid placement with no visible “Sponsored” label`,
+          suggest: "Add a visible “Sponsored” label, or accept it if the disclosure is handled elsewhere.",
+        },
       };
 
       // The creator's resolution. "accept" keeps a deliberate placement; the rest fix it.
@@ -410,13 +442,16 @@
         review: "Decide later",
         move: "Move to a safe zone",
         resize: "Increase the size",
+        label: "Add the “Sponsored” label",
         switch: "Switch the layout",
         accept: "Keep it on purpose",
       };
 
       const sampleRows = [
         { id: "l1", element: "caption", check: "clear", fix: "keep" },
-        { id: "l2", element: "sponsor", check: "face-area", fix: "review" },
+        // The sponsor mark is positioned safely but carries no on-screen disclosure, so
+        // it surfaces the new "Sponsored" label check on load (still a review item).
+        { id: "l2", element: "sponsor", check: "disclosure", fix: "review" },
         { id: "l3", element: "logo", check: "outside-crop", fix: "accept" },
       ];
 
@@ -599,6 +634,12 @@
       }
 
       render();
+
+      // Exported only for the committed Node test (layout-safe-areas.test.js). In the
+      // page `module` is undefined, so this block is skipped and nothing changes.
+      if (typeof module !== "undefined" && module.exports) {
+        module.exports = { elements, checks, fixes, sampleRows, evaluate };
+      }
     </script>
   </body>
 </html>
