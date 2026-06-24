@@ -255,6 +255,7 @@
       .badge.applied { color: #075246; background: #dff5ef; }
       .badge.original { color: #3f4d66; background: #e8edf5; }
       .badge.not-needed { color: #5e6b67; background: #eef2f0; }
+      .badge.too-damaged { color: #8b1e1e; background: #fbe4e4; }
 
       .moments {
         display: flex;
@@ -429,6 +430,22 @@
         gap: 8px;
       }
 
+      .speaker-actions .fix-link {
+        display: inline-flex;
+        align-items: center;
+        min-height: 38px;
+        border: 1px solid #c0392b;
+        border-radius: 6px;
+        background: #fbe4e4;
+        color: #8b1e1e;
+        font-weight: 700;
+        padding: 7px 11px;
+        text-decoration: none;
+      }
+
+      .speaker-actions .fix-link:hover { text-decoration: underline; }
+      .speaker-actions .fix-link:focus-visible { outline: 2px solid #8b1e1e; outline-offset: 2px; }
+
       button.secondary {
         min-height: 38px;
         border: 1px solid #b9c8c3;
@@ -507,7 +524,7 @@
       const sampleSpeakers = [
         { id: "host", name: "Host — Dana Brooks", state: "not needed" },
         { id: "guest-1", name: "Guest 1 — Marcus Lee", state: "suggested" },
-        { id: "guest-2", name: "Guest 2 — Priya Shah", state: "suggested" },
+        { id: "guest-2", name: "Guest 2 — Priya Shah", state: "too damaged" },
       ];
 
       let enabled = new Set(["balance", "quiet"]);
@@ -563,6 +580,8 @@
 
         statusElement.textContent = speakers.some((speaker) => speaker.state === "suggested")
           ? "Cleanup suggested"
+          : speakers.some((speaker) => speaker.state === "too damaged")
+          ? "Source media needs attention"
           : "Sounds ready";
         summaryElement.textContent = buildSummary();
       }
@@ -609,6 +628,13 @@
           parts.push(`${keptOriginal.map(bucketLabel).join(" and ")} kept original audio on purpose.`);
         }
 
+        const damaged = speakers.filter((speaker) => speaker.state === "too damaged");
+        if (damaged.length) {
+          parts.push(
+            `${damaged.map(bucketLabel).join(" and ")} ${damaged.length === 1 ? "is" : "are"} too damaged to clean — replace in source media health.`,
+          );
+        }
+
         if (parts.length) {
           return parts.join(" ");
         }
@@ -618,13 +644,22 @@
 
       function buildRollup() {
         const needsWork = speakers.filter((speaker) => speaker.state === "suggested");
-        const clearCount = speakers.length - needsWork.length;
+        const damaged = speakers.filter((speaker) => speaker.state === "too damaged");
+        const clearCount = speakers.length - needsWork.length - damaged.length;
 
-        if (needsWork.length) {
+        if (needsWork.length || damaged.length) {
+          const detail = [];
+          if (needsWork.length) {
+            detail.push(`${needsWork.length} track${needsWork.length === 1 ? "" : "s"} need cleanup review`);
+          }
+          if (damaged.length) {
+            detail.push(`${damaged.length} too damaged to clean`);
+          }
+          detail.push(`${clearCount} already clear`);
           return {
             statusClass: "attention",
-            status: "Cleanup suggested",
-            detail: `${needsWork.length} track${needsWork.length === 1 ? "" : "s"} need cleanup review · ${clearCount} already clear`,
+            status: needsWork.length ? "Cleanup suggested" : "Source media needs attention",
+            detail: detail.join(" · "),
             needsWork,
           };
         }
@@ -805,6 +840,7 @@
         if (state === "suggested") return "suggested";
         if (state === "applied") return "applied";
         if (state === "accepted original") return "original";
+        if (state === "too damaged") return "too-damaged";
         return "not-needed";
       }
 
@@ -1039,7 +1075,7 @@
         const label = document.createElement("label");
         label.textContent = "Track status";
         const select = document.createElement("select");
-        for (const value of ["suggested", "applied", "accepted original", "not needed"]) {
+        for (const value of ["suggested", "applied", "accepted original", "not needed", "too damaged"]) {
           const option = document.createElement("option");
           option.value = value;
           option.textContent = value;
@@ -1054,7 +1090,18 @@
         label.appendChild(select);
         article.append(head, label);
 
-        if (speaker.state === "suggested" || speaker.state === "applied") {
+        if (speaker.state === "too damaged") {
+          // A track too damaged to clean is replaced upstream in source media, not cleaned
+          // here, so the only action is a hand-off to the screen that owns source media.
+          const actions = document.createElement("div");
+          actions.className = "speaker-actions";
+          const fixLink = document.createElement("a");
+          fixLink.className = "fix-link";
+          fixLink.href = "source-media-health.html";
+          fixLink.textContent = "Replace in source media health →";
+          actions.appendChild(fixLink);
+          article.appendChild(actions);
+        } else if (speaker.state === "suggested" || speaker.state === "applied") {
           const actions = document.createElement("div");
           actions.className = "speaker-actions";
 
