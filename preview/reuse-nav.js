@@ -63,6 +63,25 @@ function setTopTargetWhenEmbedded(link) {
   }
 }
 
+// Keep the episode workflow path (?path=...) on reuse links so a creator who entered
+// the reuse step from the guided episode path stays in that context, matching the
+// other flow navs (ingest, speaker setup, episode flow).
+function pathQuerySuffix() {
+  const path = new URLSearchParams(window.location.search).get("path");
+  if (path === "episode") {
+    return "?path=episode";
+  }
+  if (path === "reuse") {
+    return "?path=reuse";
+  }
+  return "";
+}
+
+function hrefWithPath(file) {
+  const suffix = pathQuerySuffix();
+  return suffix ? `${file}${suffix}` : file;
+}
+
 function setReuseScreenLink(link, file) {
   if (isEmbeddedInPreviewApp() && isPreviewAppReuseTarget(file)) {
     link.href = previewAppHref(file);
@@ -70,7 +89,7 @@ function setReuseScreenLink(link, file) {
     return;
   }
 
-  link.href = file;
+  link.href = hrefWithPath(file);
 }
 
 function renderReuseNav() {

@@ -101,6 +101,7 @@ function renderNavFor(fileName, reuseStep, embedded = false) {
   vm.runInNewContext(navScript, {
     document,
     window: makeWindow(fileName, embedded),
+    URLSearchParams,
   });
 
   return flatten(body);
@@ -192,5 +193,41 @@ assert.equal(
   "embedded reuse nav routes the publish handoff through the preview app hash",
 );
 assert.equal(embeddedHandoff.target, "_top", "embedded reuse handoff targets the parent app");
+
+// Path context: a creator who entered reuse on the guided episode path keeps the
+// ?path=episode context on reuse navigation, matching the other flow navs.
+function renderNavWithSearch(fileName, reuseStep, search) {
+  const head = createElement("head");
+  const body = createElement("body");
+  if (reuseStep) { body.dataset = { reuseStep }; }
+  const document = {
+    readyState: "complete", head, body, createElement,
+    getElementById(id) { return [...flatten(head), ...flatten(body)].find((node) => node.id === id) || null; },
+    querySelector(selector) {
+      if (!selector.startsWith(".")) return null;
+      const className = selector.slice(1);
+      return flatten(body).find((node) => node.className.split(" ").includes(className)) || null;
+    },
+  };
+  const window = { location: { pathname: "/prototype/" + fileName, search: search } };
+  window.self = window; window.top = window;
+  vm.runInNewContext(navScript, { document, window, URLSearchParams });
+  return flatten(body);
+}
+
+const pathNav = renderNavWithSearch("show-template-adaptation.html", "show-template-adaptation", "?path=episode");
+assert.ok(
+  linkWithText(pathNav, "Previous: Show segment system").href.includes("?path=episode"),
+  "reuse nav keeps the episode path context on the previous link",
+);
+assert.ok(
+  linkWithText(pathNav, "Next: Start from previous episode").href.includes("?path=episode"),
+  "reuse nav keeps the episode path context on the next link",
+);
+const noPathNav = renderNavWithSearch("show-template-adaptation.html", "show-template-adaptation", "");
+assert.ok(
+  !linkWithText(noPathNav, "Previous: Show segment system").href.includes("?path="),
+  "reuse nav adds no path suffix when there is no path context",
+);
 
 console.log("reuse nav: make-it-reusable screens connected into one path");
