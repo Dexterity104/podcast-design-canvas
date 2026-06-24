@@ -720,6 +720,15 @@
       (function () {
         "use strict";
 
+        // structuredClone is missing in some older embedded/webview contexts; fall
+        // back to a JSON round-trip, which is sufficient for this plain-data sample.
+        function clone(value) {
+          if (typeof structuredClone === "function") {
+            return structuredClone(value);
+          }
+          return JSON.parse(JSON.stringify(value));
+        }
+
         var PLACEMENT_TYPES = {
           "lower-corner": "Lower-corner mark",
           "title-card": "Title-card mention",
@@ -1263,7 +1272,7 @@
             { id: "s4", sponsor: "Norththread", type: "end-card", strength: "prominent", at: 3380, condition: "missing-disclosure", disp: "conflict" },
             { id: "s5", sponsor: "Acme Tools", type: "description", strength: "subtle", at: 0, condition: "clean", disp: "place" },
           ];
-          placements = structuredClone(sample);
+          placements = clone(sample);
 
           placementsElement = document.querySelector("#placements");
           statusElement = document.querySelector("#status");
@@ -1274,7 +1283,7 @@
           descStripElement = document.querySelector("#descStrip");
 
           document.querySelector("#reset").addEventListener("click", function () {
-            placements = structuredClone(sample);
+            placements = clone(sample);
             focusIndex = -1;
             render();
           });
@@ -1293,6 +1302,7 @@
             OVER_CAPTIONS_BOX: OVER_CAPTIONS_BOX,
             DISCLOSURE_TYPES: DISCLOSURE_TYPES,
             fmt: fmt,
+            clone: clone,
             evaluate: evaluate,
             previewModel: previewModel,
             dispositionLabel: dispositionLabel,
