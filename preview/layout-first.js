@@ -73,6 +73,19 @@
     return false;
   }
 
+  // A 0-byte file is a failed or aborted export, not a usable recording — placeVideoFile rejects
+  // it. Guard on === 0 (not falsy) so a file whose size is unknown is still treated as placeable.
+  function isEmptyExport(file) {
+    return Boolean(file) && typeof file.size === "number" && file.size === 0;
+  }
+
+  // A file the placement path will actually accept into a slot: a video that carries real bytes.
+  // Used to decide which extras in a multi-file drop may spill into open slots — a non-video or an
+  // empty export passes neither, so it never consumes a slot it would only be rejected from.
+  function isPlaceableVideo(file) {
+    return isVideoFile(file) && !isEmptyExport(file);
+  }
+
   // A stable identity for a dropped recording. Display name alone is not enough — separate
   // speaker recordings are often exported with the same name (recording.mp4, riverside-track.mp4),
   // so we key on name plus size and modified time. When neither size nor time is available we
@@ -451,9 +464,8 @@
       }
 
       // A 0-byte file is a failed or aborted export, not a usable recording. Reject it so
-      // it never fills a slot or counts toward the Continue gate. Guard on === 0 (not
-      // falsy) so files whose size is unknown are still accepted.
-      if (typeof file.size === "number" && file.size === 0) {
+      // it never fills a slot or counts toward the Continue gate.
+      if (isEmptyExport(file)) {
         flagInvalidSlot(zone, "The " + slotName(zone) + " video file is empty. Re-export it and place the finished file.");
         updateSlotStatus();
         return;
@@ -539,14 +551,18 @@
         // or valid recordings shift into the wrong speaker assignments.
         return;
       }
-      // Only spill the extra files that are actually videos, so a stray non-video in the
-      // batch never flags a slot the creator didn't aim at.
-      // Spill only the extras that are actually videos; count any non-video so it can be
-      // reported instead of silently vanishing. (The first file already went through
-      // placeVideoFile above, which flags it if it isn't a video.)
-      const extras = files.slice(1).filter(isVideoFile);
-      const skippedNonVideo = files.slice(1).length - extras.length;
-      if (extras.length === 0 && skippedNonVideo === 0) {
+      // Spill only the extras a slot will actually accept: a real video with bytes. A non-video,
+      // or a 0-byte/aborted export that passes the video-type check but is rejected on placement,
+      // must not consume an open slot — that would shift the remaining recordings past it into the
+      // wrong speaker assignments (the real guest take would land in optional b-roll) and flag a
+      // slot the creator never aimed at. Count what was left out so the creator is told, rather
+      // than a file silently vanishing. (The first file already went through placeVideoFile above,
+      // which flags it if it can't be placed.)
+      const rest = files.slice(1);
+      const extras = rest.filter(isPlaceableVideo);
+      const skippedNonVideo = rest.filter((file) => !isVideoFile(file)).length;
+      const skippedEmpty = rest.filter((file) => isVideoFile(file) && isEmptyExport(file)).length;
+      if (extras.length === 0 && skippedNonVideo === 0 && skippedEmpty === 0) {
         return;
       }
       const openSlots = visibleSlots().filter((candidate) => {
@@ -563,12 +579,16 @@
         }
       });
       // Tell the creator about anything from the drop that didn't land, rather than silently
-      // discarding it. Overflow (more videos than open slots) takes priority; otherwise report
-      // non-video files that were skipped.
+      // discarding it. Overflow (more videos than open slots) takes priority; otherwise report the
+      // empty exports, then the non-video files, that were skipped.
       if (overflow > 0) {
         const noun = overflow === 1 ? "video" : "videos";
         const verb = overflow === 1 ? "wasn't" : "weren't";
         setError(`There's no open slot left, so ${overflow} extra ${noun} ${verb} placed. Remove a video to make room for another.`);
+      } else if (skippedEmpty > 0) {
+        const noun = skippedEmpty === 1 ? "video" : "videos";
+        const wasWere = skippedEmpty === 1 ? "was an empty export, so it was" : "were empty exports, so they were";
+        setError(`${skippedEmpty} ${noun} in that drop ${wasWere} skipped. Re-export and drop the finished file.`);
       } else if (skippedNonVideo > 0) {
         const noun = skippedNonVideo === 1 ? "file" : "files";
         const wasWere = skippedNonVideo === 1 ? "wasn't a video, so it was" : "weren't videos, so they were";

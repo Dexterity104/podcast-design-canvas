@@ -117,16 +117,17 @@ function buildController() {
       return [];
     },
   };
-  return createLayoutFirstController(documentStub, {
+  const controller = createLayoutFirstController(documentStub, {
     URL: { createObjectURL(file) { return `blob:${file.name}`; }, revokeObjectURL() {} },
   });
+  return { controller, elementsById };
 }
 
 function video(name) {
   return { name, type: "video/mp4", size: 2048, lastModified: 1000 };
 }
 
-const ctl = buildController();
+const { controller: ctl, elementsById } = buildController();
 ctl.applyLayout("panel");
 ctl.placeVideoFiles(ctl.zonesBySlot.host, [
   { name: "bad.png", type: "image/png", size: 100 },
@@ -170,4 +171,39 @@ assert.ok(ctl.zonesBySlot.host.classList.contains("filled"), "a duplicate batch 
 assert.ok(!ctl.zonesBySlot.guest.classList.contains("filled"), "a duplicate of the same recording does not spill into another slot");
 assert.ok(!ctl.zonesBySlot["guest-b"].classList.contains("filled"), "no further slot is filled by a duplicate");
 
-console.log("layout-first multi-file spill: no spill on reject; spill skips invalid slots");
+// An empty (0-byte) export in the MIDDLE of a batch must be skipped, not consume an open slot.
+// It passes the video-type check but is rejected on placement, so if it took the next open slot
+// the real recording after it would be misrouted — the required guest take landing in optional
+// b-roll, leaving the guest slot empty and wrongly gating Continue. (Parallels how a non-video in
+// the batch is spilled past; see the multi-file cases in layout-first.test.js.)
+ctl.resetVideos();
+ctl.applyLayout("interview");
+ctl.placeVideoFiles(ctl.zonesBySlot.host, [
+  video("host.mp4"),
+  { name: "aborted.mp4", type: "video/mp4", size: 0, lastModified: 5 },
+  video("guest.mp4"),
+]);
+assert.ok(ctl.zonesBySlot.host.classList.contains("filled"), "the dropped slot takes the first valid recording");
+assert.ok(ctl.zonesBySlot.guest.classList.contains("filled"), "the real guest recording fills the required guest slot, not optional b-roll");
+assert.ok(!ctl.zonesBySlot.broll.classList.contains("filled"), "the optional b-roll slot stays empty when an empty export is skipped");
+assert.strictEqual(ctl.firstBlockingZone(), null, "Continue is not gated once both required speaker videos are placed");
+assert.equal(elementsById["layout-error-card"].hidden, false, "a skipped empty export in the drop surfaces a message");
+assert.match(
+  elementsById["layout-error"].textContent,
+  /1 video in that drop was an empty export, so it was skipped/,
+  "the message names how many empty exports were skipped",
+);
+
+// A trailing empty export (no real recording after it) is still skipped rather than flagging a
+// slot the creator never aimed at; only the slot the batch landed on is filled.
+ctl.resetVideos();
+ctl.applyLayout("interview");
+ctl.placeVideoFiles(ctl.zonesBySlot.host, [
+  video("host.mp4"),
+  { name: "aborted.mp4", type: "video/mp4", size: 0, lastModified: 6 },
+]);
+assert.ok(ctl.zonesBySlot.host.classList.contains("filled"), "the dropped slot takes the valid recording");
+assert.ok(!ctl.zonesBySlot.guest.classList.contains("is-invalid"), "a skipped empty export does not flag the guest slot the creator never aimed at");
+assert.ok(!ctl.zonesBySlot.guest.classList.contains("filled"), "the skipped empty export leaves the guest slot untouched");
+
+console.log("layout-first multi-file spill: no spill on reject; skips invalid slots and empty exports");
