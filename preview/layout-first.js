@@ -273,6 +273,13 @@
       clearZone(zone);
       setError("");
       updateSlotStatus();
+      // The Remove button lived inside the cleared video, so keyboard/screen-reader focus
+      // would otherwise fall to the page body. Return it to this slot's file input — the
+      // surviving "Choose <slot> video" control — so the creator stays oriented.
+      const input = zone.querySelector("[data-file-input]");
+      if (input && typeof input.focus === "function") {
+        input.focus();
+      }
     }
 
     function applyLayout(name) {

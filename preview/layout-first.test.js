@@ -30,6 +30,8 @@ class ClassList {
   }
 }
 
+let lastFocused = null;
+
 class Element {
   constructor(tagName, options = {}) {
     this.tagName = tagName;
@@ -48,6 +50,7 @@ class Element {
     this.href = options.href || "";
   }
 
+  focus() { lastFocused = this; }
   setAttribute(name, value) { this.attributes[name] = value; }
   getAttribute(name) { return this.attributes[name]; }
   removeAttribute(name) {
@@ -421,6 +424,54 @@ assert.equal(
   elementsById["layout-continue"].attributes["aria-disabled"],
   "false",
   "Continue is restored once each speaker has a separate recording",
+);
+
+// Removing a placed video returns keyboard focus to that slot's file input, so a
+// keyboard/screen-reader user is not stranded on the page body after the Remove button
+// (which lived inside the cleared video) disappears. Fresh controller to isolate state.
+const focusZones = [
+  makeZone("host"),
+  makeZone("guest"),
+  makeZone("guest-b", "drop-zone is-hidden"),
+  makeZone("broll"),
+];
+const focusButtons = [
+  makeLayoutButton("interview", "Using interview"),
+  makeLayoutButton("solo", "Use solo"),
+  makeLayoutButton("panel", "Use panel"),
+];
+const focusById = {
+  "layout-scene-label": new Element("span"),
+  "layout-runtime-label": new Element("span"),
+  "speaker-row": new Element("div", { className: "speaker-row" }),
+  "layout-slot-status": new Element("p"),
+  "layout-reset": new Element("button"),
+  "layout-continue": new Element("a", { className: "continue-btn is-disabled" }),
+  "layout-error-card": new Element("div", { hidden: true }),
+  "layout-error": new Element("p"),
+};
+const focusDoc = {
+  createElement(tagName) { return new Element(tagName); },
+  getElementById(id) { return focusById[id] || null; },
+  querySelectorAll(selector) {
+    if (selector === "[data-layout]") return focusButtons;
+    if (selector === ".drop-zone[data-slot]") return focusZones;
+    return [];
+  },
+};
+const focusController = createLayoutFirstController(focusDoc, { URL: urlApi });
+focusController.placeVideoFile(focusController.zonesBySlot.guest, video("guest.mp4"));
+lastFocused = null;
+focusController.removeVideo(focusController.zonesBySlot.guest);
+assert.strictEqual(
+  lastFocused,
+  focusController.zonesBySlot.guest.querySelector("[data-file-input]"),
+  "removing a video returns focus to that slot's file input",
+);
+assert.strictEqual(
+  focusController.zonesBySlot.guest.querySelector(".placed-video"),
+  null,
+  "the removed video (with its focused Remove button) is gone from the slot",
 );
 
 console.log("layout-first landing: required speaker readiness, optional b-roll, handoff, and layout-switch preservation verified");
