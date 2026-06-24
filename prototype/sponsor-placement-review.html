@@ -485,6 +485,15 @@
         border-color: var(--warn);
       }
 
+      /* Approved as a deliberate exception over a soft warning (e.g. kept on the
+         lower-third): dashed amber, never the clean green of a resolved element, so
+         the preview keeps admitting the overlap is still there. */
+      .sponsor-el.v-exception {
+        border-color: var(--warn);
+        border-style: dashed;
+        box-shadow: 0 0 0 2px rgba(161, 92, 0, 0.22), 0 4px 14px rgba(0, 0, 0, 0.3);
+      }
+
       .sponsor-el.v-conflict {
         border-color: var(--block);
         box-shadow: 0 0 0 2px rgba(165, 40, 40, 0.3), 0 4px 14px rgba(0, 0, 0, 0.3);
@@ -679,8 +688,8 @@
         <div class="desc-strip" id="descStrip"></div>
         <p class="frame-legend">
           <span class="legend-key"><span class="dot red"></span> Blocks export</span>
-          <span class="legend-key"><span class="dot amber"></span> Needs a look</span>
-          <span class="legend-key"><span class="dot green"></span> Cleared or approved</span>
+          <span class="legend-key"><span class="dot amber"></span> Needs a look, or kept as an exception</span>
+          <span class="legend-key"><span class="dot green"></span> No conflict or fixed clear</span>
           <span class="legend-key">Select an element below to preview where it lands.</span>
         </p>
       </section>
@@ -913,21 +922,27 @@
             tag = "On a sensitive moment";
             tagTone = "conflict";
           } else if (cond === "lower-third") {
+            // Approving does NOT move the element — it stays on the lower-third, so the
+            // overlap stays visibly marked either way. Approve-as-is is therefore a
+            // deliberate exception (amber), never the clean green of a resolved element;
+            // only "Apply the suggested fix" actually nudges it clear (handled above).
             box = OVER_CAPTIONS_BOX;
+            captionsObscured = true;
             if (approved) {
-              variant = "approved";
-              tag = "Approved over the captions";
-              tagTone = "clean";
+              variant = "exception";
+              tag = "Kept over the captions (approved exception)";
+              tagTone = "review";
             } else {
               variant = "review";
-              captionsObscured = true;
               tag = "Overlaps the captions";
               tagTone = "review";
             }
           } else if (cond === "low-contrast") {
+            // Same rule: approving leaves the asset rendered faint, so the readability
+            // warning persists and it reads as an accepted exception, not a clean pass.
             variant = "lowcontrast";
-            tag = approved ? "Approved as-is" : "Hard to read here";
-            tagTone = approved ? "clean" : "review";
+            tag = approved ? "Kept as-is — still hard to read" : "Hard to read here";
+            tagTone = "review";
           }
 
           return {
