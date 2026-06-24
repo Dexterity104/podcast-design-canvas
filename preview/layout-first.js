@@ -239,6 +239,15 @@
         return;
       }
 
+      // A 0-byte file is a failed or aborted export, not a usable recording. Reject it so
+      // it never fills a slot or counts toward the Continue gate. Guard on === 0 (not
+      // falsy) so files whose size is unknown are still accepted.
+      if (typeof file.size === "number" && file.size === 0) {
+        setError("That video file is empty. Re-export it and place the finished file.");
+        updateSlotStatus();
+        return;
+      }
+
       setError("");
       clearMatchingSource(zone, file);
       clearZone(zone);

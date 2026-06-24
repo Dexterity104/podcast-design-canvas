@@ -503,4 +503,58 @@ assert.strictEqual(
   "the removed video (with its focused Remove button) is gone from the slot",
 );
 
+// A 0-byte video (a failed/aborted export) is rejected: it never fills a slot, surfaces a
+// clear error, and keeps Continue gated — while a normal video still places. Fresh controller.
+const emptyZones = [
+  makeZone("host"),
+  makeZone("guest"),
+  makeZone("guest-b", "drop-zone is-hidden"),
+  makeZone("broll"),
+];
+const emptyButtons = [
+  makeLayoutButton("interview", "Using interview"),
+  makeLayoutButton("solo", "Use solo"),
+  makeLayoutButton("panel", "Use panel"),
+];
+const emptyById = {
+  "layout-scene-label": new Element("span"),
+  "layout-runtime-label": new Element("span"),
+  "speaker-row": new Element("div", { className: "speaker-row" }),
+  "layout-slot-status": new Element("p"),
+  "layout-reset": new Element("button"),
+  "layout-continue": new Element("a", { className: "continue-btn is-disabled" }),
+  "layout-error-card": new Element("div", { hidden: true }),
+  "layout-error": new Element("p"),
+};
+const emptyDoc = {
+  createElement(tagName) { return new Element(tagName); },
+  getElementById(id) { return emptyById[id] || null; },
+  querySelectorAll(selector) {
+    if (selector === "[data-layout]") return emptyButtons;
+    if (selector === ".drop-zone[data-slot]") return emptyZones;
+    return [];
+  },
+};
+const emptyCtl = createLayoutFirstController(emptyDoc, { URL: urlApi });
+emptyCtl.placeVideoFile(emptyCtl.zonesBySlot.host, { name: "aborted.mp4", type: "video/mp4", size: 0 });
+assert.strictEqual(
+  emptyCtl.zonesBySlot.host.classList.contains("filled"),
+  false,
+  "a 0-byte video does not fill the slot",
+);
+assert.strictEqual(emptyById["layout-error-card"].hidden, false, "a 0-byte video surfaces a visible error");
+assert.match(emptyById["layout-error"].textContent, /empty/i, "the empty-file error is creator-facing");
+assert.strictEqual(
+  emptyById["layout-continue"].attributes["aria-disabled"],
+  "true",
+  "a 0-byte video keeps Continue gated",
+);
+emptyCtl.placeVideoFile(emptyCtl.zonesBySlot.host, { name: "host.mp4", type: "video/mp4", size: 2048 });
+assert.strictEqual(
+  emptyCtl.zonesBySlot.host.classList.contains("filled"),
+  true,
+  "a normal video still places after an empty one was rejected",
+);
+assert.strictEqual(emptyById["layout-error-card"].hidden, true, "placing a valid video clears the empty-file error");
+
 console.log("layout-first landing: required speaker readiness, optional b-roll, handoff, and layout-switch preservation verified");
