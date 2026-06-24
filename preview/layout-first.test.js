@@ -335,6 +335,9 @@ assert.equal(
   "re-filling the removed slot restores the continue handoff",
 );
 
+// Start the panel scenario from a clean slate (earlier switches set videos aside, which
+// now persist across compatible layouts — see the dedicated preserve test below).
+controller.resetVideos();
 controller.applyLayout("panel");
 assert.equal(controller.requiredSlots().length, 3, "panel requires host and two guest videos");
 controller.placeVideoFile(controller.zonesBySlot.host, video("panel-host.mp4"));
@@ -402,6 +405,24 @@ preserve.applyLayout("solo");
 assert.equal(preserve.zonesBySlot.host.classList.contains("filled"), true, "switching to solo keeps the still-visible host video");
 assert.equal(preserve.zonesBySlot.guest.classList.contains("filled"), false, "a slot that leaves the layout is cleared");
 assert.ok(revokedUrls.includes("blob:p-guest.mp4"), "leaving a slot revokes its object URL");
+
+// Switching back to a compatible layout restores a video that was set aside, so toggling
+// layouts never silently discards a creator's placement (#1026 / #1131).
+preserve.applyLayout("interview");
+assert.equal(
+  preserve.zonesBySlot.guest.classList.contains("filled"),
+  true,
+  "switching back to a compatible layout restores the set-aside guest video",
+);
+assert.equal(
+  preserve.zonesBySlot.guest.dataset.fileName,
+  "p-guest.mp4",
+  "the restored slot holds the original recording",
+);
+assert.ok(
+  createdUrls.filter((url) => url === "blob:p-guest.mp4").length >= 2,
+  "restoring a set-aside video recreates its object URL",
+);
 
 // Source movement is keyed on file identity (name + size + modified time), not display
 // name. The same recording moves out of its old slot before filling the new one, while
