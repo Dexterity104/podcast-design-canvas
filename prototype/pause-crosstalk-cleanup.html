@@ -401,18 +401,26 @@
           };
         }
 
-        // "Apply to similar" is only offered when at least one other moment of the same
-        // kind currently holds a different choice — otherwise the control would do
-        // nothing.
-        function canApplySimilar(index, list) {
+        // The moments "Apply to similar" would actually change: other moments of the
+        // same kind that currently hold a DIFFERENT choice. Single source of truth for
+        // both the control's visibility and its count, so the button only ever appears
+        // when it would change something, and its number never overstates its reach —
+        // same-kind moments that already match are not counted and not announced.
+        function similarToChange(index, list) {
           var me = list[index];
           if (!me) {
-            return false;
+            return [];
           }
           var kind = validKind(me.kind);
-          return list.some(function (other, i) {
+          return list.filter(function (other, i) {
             return i !== index && validKind(other.kind) === kind && other.disp !== me.disp;
           });
+        }
+
+        // "Apply to similar" is only offered when it would change at least one other
+        // moment — otherwise the control would be a no-op.
+        function canApplySimilar(index, list) {
+          return similarToChange(index, list).length > 0;
         }
 
         function applySimilar(index, list) {
@@ -432,12 +440,9 @@
           });
         }
 
+        // Exactly how many moments the button will change — the number shown on it.
         function countSimilar(index, list) {
-          var me = list[index];
-          var kind = validKind(me.kind);
-          return list.filter(function (other, i) {
-            return i !== index && validKind(other.kind) === kind;
-          }).length;
+          return similarToChange(index, list).length;
         }
 
         // ---- DOM rendering (browser only) ----------------------------------------
