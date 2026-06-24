@@ -23,6 +23,12 @@ assert.ok(app.includes("function routeSearchFor"), "app whitelists supported rou
 assert.match(app, /aria-current", "page"/, "the active screen is marked in the nav");
 assert.ok(!/innerHTML/.test(app), "app builds the nav without innerHTML");
 
+// Layout-first start (#1026): opening the app without a specific screen sends the creator
+// to the layout picker, so the first thing they see is layout selection and drag-and-drop
+// video placement — not a workflow screen. Explicit #screen hashes still load normally.
+assert.ok(app.includes("if (!window.location.hash)"), "app starts layout-first when no screen is requested");
+assert.ok(app.includes('window.location.replace("layout-first.html")'), "the layout-first start opens the layout picker");
+
 // The script parses.
 new vm.Script(app.match(/<script>([\s\S]*?)<\/script>/)[1]);
 
